@@ -64,11 +64,11 @@ public class ProxyInfo {
         if (appInitDtos == null) {
             appInitDtos = new ArrayList<>();
         }
-        for (AppInitDto appInitDto : appInitDtos) {
-            if (appInitDto.tag == dto.tag) {
-                throw new CakeRunException("@AppInit or @AsyncInit tag can not be equal!!!");
-            }
-        }
+//        for (AppInitDto appInitDto : appInitDtos) {
+//            if (appInitDto.tag == dto.tag) {
+//                throw new CakeRunException("@AppInit or @AsyncInit tag can not be equal!!!");
+//            }
+//        }
         appInitDtos.add(dto);
     }
 
