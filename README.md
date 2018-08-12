@@ -2,7 +2,7 @@
 Android Hook Crash 框架
 
 
-###1.概述
+### 概述
 
 (有Bug...暂时还没能抽出时间修，不过思想值得探讨)
 
@@ -20,11 +20,11 @@ Bug的产生往往是不可预料，且无法绝对避免。那么如何应对�
 一个可控的问题将不再是问题，把Crash Hook住，就是我们下面要讲的框架 ----CakeRun.
 
 
-###2.Crash分类
+### Crash分类
 
 我们将Crash分为两个部分和两个类别。
 
-#####部分一：Application Crash
+##### 部分一：Application Crash
 
 最棘手的Crash莫过于Application奔溃。这里我们的解决思路是，按照功能类别将Application中的操作拆分为一个个独立方法，当执行到某个方法程序奔溃后，我们可以定位到这个方法，重新启动程序，再次执行到该方法时跳过执行。
 
@@ -67,7 +67,7 @@ Bug的产生往往是不可预料，且无法绝对避免。那么如何应对�
 	}
 
 
-#####部分二：以Activity为单位的其他Crash
+##### 部分二：以Activity为单位的其他Crash
 
 部分二其实就是所有的非Application Crash。但为什么要以Activity为单位呢？当某个Activity内部产生了严重Crash（严重：非偶然奔溃，必Crash或Crash次数很多），我们可以直接屏蔽该Activity的启动。
 
@@ -76,7 +76,7 @@ Bug的产生往往是不可预料，且无法绝对避免。那么如何应对�
 这里需要提一点：**Hook 住 Crash不是目的和终点，而是让问题变得可控，可解决。最终的目的是让APP跑起来，可以执行我们真正的补救措施。**
 
 
-#####分类一：非关键路径Crash
+##### 分类一：非关键路径Crash
 
 什么是非关键路径Crash？就是这一块的代码不执行，对APP的影响并不是致命的。
 
@@ -90,7 +90,7 @@ Bug的产生往往是不可预料，且无法绝对避免。那么如何应对�
 那么这样的Crash，我们便不需要阻塞程序运行强制更新，可以暂时关闭该功能模块入口，交付用户继续使用，通过其他更为柔和的办法解决（热更新或非强制更新）。
 
 
-#####分类二：关键路径Crash
+##### 分类二：关键路径Crash
 
 这个Crash如果不解决，我程序根本跑步起来，或者跳过这段代码跑起来也没用，APP都失去意义啦。
 
@@ -103,7 +103,7 @@ Bug的产生往往是不可预料，且无法绝对避免。那么如何应对�
 面对这样的Crash，建议直接中断程序执行，直接转到更新页面让用户强制更新或等待强制更新。
 
 
-###3.Hook异步任务
+### Hook异步任务
 
 这个单独拿出来讲了，因为这确实是一个很棘手的问题。我们可以先看一下异步任务的错误栈：
 
@@ -116,7 +116,7 @@ Bug的产生往往是不可预料，且无法绝对避免。那么如何应对�
 也就是说异步任务Crash时，已经不能很简单的判断跳过Application中的哪个初始化方法了。
 
 
-####问题总是要解决的
+#### 问题总是要解决的
 
 **异步任务往往是不可控的，尽量不要在Application中出现。**
 
@@ -125,14 +125,14 @@ Bug的产生往往是不可预料，且无法绝对避免。那么如何应对�
 这里初步的折中解决方案是，执行异步初始化之前，预估该异步初始化执行时间t和包名或全类名。在Application执行结束后，持续监控t时间。t时间内发生Crash后，首先检查Crash是否在该包名或全类名下，是，则认为是Application中该异步初始化引起的Crash，重启应用程序，跳过该初始化任务。
 
 
-###4.Hook Crash框架 CakeRun的使用
+### Hook Crash框架 CakeRun的使用
 
 前面我们讲了Crash的分类和如何定位Crash（Application中的Crash交给CakeRun定位，Activity中的Crash交给开发者定位）。
 
 那么在定位到之后如何处理呢？在看懂CakeRun的使用后你就明白了。
 
 
-####1.依赖
+#### 依赖
 
 Install with gradle
 
@@ -140,7 +140,7 @@ Install with gradle
         compile 'com.github.zhaoxuan:cake-run:0.0.1'
     }
 
-####2.实现ICrashPatch接口，设定Crash后的响应
+#### 实现ICrashPatch接口，设定Crash后的响应
 
 *ICrashPatch*有三个方法：
 
@@ -198,7 +198,7 @@ startApplicationCrashActivity
 	
 
 
-####2.Application 初始化CakeRun
+#### Application 初始化CakeRun
 
 **限制：** CakeRun的初始化要第一个进行。（它不初始化，怎么Hook其它的呀~）
 
@@ -215,7 +215,7 @@ startApplicationCrashActivity
 		//开始执行application中被注解@AppInit 和 @AsyncInit 修饰了的初始化方法
 		CakeRun.getInstance().applicationInit();
 
-####3.使用注解
+#### 使用注解
 
 CakeRun有两个注解：@AppInit 和 @AsyncInit
 
@@ -250,7 +250,7 @@ CakeRun有两个注解：@AppInit 和 @AsyncInit
 
 
 
-####4.Activity跳转
+#### Activity跳转
 
 CakeRun接管了Activity的跳转。通过CakeRun跳转的Activity，可以命令和Crash记录控制是否屏蔽跳转。
 
@@ -274,7 +274,7 @@ CakeRun提供了大部分的startActivity方法：
     }
     
    
-####5.屏蔽Activity跳转
+#### 屏蔽Activity跳转
 
 CakeRun会记录所有的Crash信息，错误日志的分析交给开发者进行。开发者可以通过第三方Bug收集工具分析Bug信息，通过Bug分析来决定是否要关闭某些Activity。
 
